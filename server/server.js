@@ -1,14 +1,20 @@
 //server.js
+require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
-const dotenv = require("dotenv");
+// const dotenv = require("dotenv");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const axios = require("axios");
+const passport = require("./passport");
 
 const connectMongo = require("../src/lib/db.js");
 
-const { registerUser, loginUser } = require("./controllers/authController.js");
+const {
+  registerUser,
+  loginUser,
+  googleCallback,
+} = require("./controllers/authController.js");
 const {
   getUserInfo,
   updateUserInfo,
@@ -47,10 +53,33 @@ const { createNFT, getAllNFTs } = require("./controllers/nftController.js");
 const { createListing } = require("./controllers/listingController.js");
 
 // Load environment variables from .env file
-dotenv.config();
+// dotenv.config();
+
+console.log("GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID);
+console.log("GOOGLE_CLIENT_SECRET:", process.env.GOOGLE_CLIENT_SECRET);
+console.log("JWT_SECRET:", process.env.JWT_SECRET);
 
 const server = express();
 const router = express.Router();
+
+const session = require("express-session");
+
+// Configure express-session
+server.use(
+  session({
+    secret: process.env.SESSION_SECRET || "default_secret", // Replace with a strong secret in production
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: false, // Set to true if using HTTPS
+      maxAge: 1000 * 60 * 60, // 1 hour
+    },
+  })
+);
+
+// Initialize Passport and restore authentication state, if any, from the session
+server.use(passport.initialize());
+server.use(passport.session());
 
 server.use(cors());
 server.use(express.json());
@@ -70,6 +99,17 @@ router.post("/api/login", loginUser);
 router.get("/api/userinfo", getUserInfo);
 // Update user info route
 router.put("/api/userinfo", updateUserInfo);
+
+// Google OAuth2 Routes
+router.get(
+  "/api/auth/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+router.get(
+  "/api/auth/google/callback",
+  passport.authenticate("google", { failureRedirect: "/login" }),
+  googleCallback
+);
 
 // COLLECTIONS
 

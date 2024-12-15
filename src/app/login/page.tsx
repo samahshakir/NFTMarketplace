@@ -85,6 +85,14 @@ const Login = () => {
         >
           Register here
         </Link>
+        <div className="mt-6">
+          <a
+            href="http://localhost:4000/api/auth/google"
+            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full block text-center"
+          >
+            Login with Google
+          </a>
+        </div>
       </div>
     </div>
   );

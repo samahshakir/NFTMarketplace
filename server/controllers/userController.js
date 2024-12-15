@@ -11,15 +11,28 @@ exports.getUserInfo = async (req, res) => {
       token,
       process.env.JWT_SECRET || "your_jwt_secret"
     );
+    console.log("Decoded Token:", decoded);
     const user = await User.findById(decoded.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    res.status(200).json({
-      username: user.username,
-      email: user.email,
-      solanaWallet: user.solanaWallet,
-      userId: user._id,
-    });
+    // Check if the user is Google-authenticated and handle accordingly
+    if (user.googleId) {
+      res.status(200).json({
+        username: user.username,
+        email: user.email,
+        solanaWallet: user.solanaWallet,
+        userId: user._id,
+        authMethod: "google",
+      });
+    } else {
+      res.status(200).json({
+        username: user.username,
+        email: user.email,
+        solanaWallet: user.solanaWallet,
+        userId: user._id,
+        authMethod: "local",
+      });
+    }
   } catch (error) {
     res.status(400).json({ message: "Invalid token" });
   }

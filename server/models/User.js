@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -8,7 +8,10 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
+    required: function () {
+      // Require password only if googleId is not set
+      return !this.googleId;
+    },
   },
   email: {
     type: String,
@@ -17,13 +20,16 @@ const userSchema = new mongoose.Schema({
   },
   solanaWallet: {
     type: String,
-    default: '',
+    default: "",
   },
   role: {
     type: String,
     required: true,
   },
+  googleId: {
+    type: String,
+    default: null, // Allow null for password-based auth
+  },
 });
 
-module.exports = mongoose.model('User', userSchema);
-
+module.exports = mongoose.model("User", userSchema);
